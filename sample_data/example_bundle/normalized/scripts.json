@@ -1,0 +1,9 @@
+{
+  "generated_at": "2026-01-01T00:00:00+00:00",
+  "section": "scripts",
+  "record_count": 1,
+  "records": [
+    {"entity_id": "script.goodnight", "alias": "Goodnight", "referenced_entities": ["light.kitchen_ceiling"]}
+  ]
+}
+

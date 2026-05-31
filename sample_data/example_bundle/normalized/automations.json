@@ -1,0 +1,9 @@
+{
+  "generated_at": "2026-01-01T00:00:00+00:00",
+  "section": "automations",
+  "record_count": 1,
+  "records": [
+    {"entity_id": "automation.kitchen_motion_light", "alias": "Kitchen motion light", "mode": "restart", "referenced_entities": ["light.kitchen_ceiling"]}
+  ]
+}
+

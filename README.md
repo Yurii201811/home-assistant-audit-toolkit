@@ -1,0 +1,138 @@
+# Home Assistant Audit Toolkit
+
+Read-only source-bundle tooling for Home Assistant audits, validation, and
+upload-safe AI review packs.
+
+Home Assistant Audit Toolkit helps operators keep a clean boundary between live
+smart-home state, generated audit evidence, and the small subset of files that
+are safe to share with an assistant or teammate. It grew from a real audit
+workflow, but this repository contains only generic code, fake sample data, and
+public-safe documentation.
+
+## What It Does
+
+- Builds a machine-readable source registry for a Home Assistant audit bundle.
+- Marks files by source type, privacy level, record count, and upload safety.
+- Validates bundle structure, JSON/CSV record counts, export manifests, and
+  obvious secret patterns.
+- Creates a flat upload-safe export pack from normalized files and reports.
+- Refuses raw evidence files in safe exports by default.
+- Runs entirely read-only against bundle files.
+
+It does not edit Home Assistant, rename entities, change automations, touch
+`.storage`, or call live services.
+
+## Why This Exists
+
+Home Assistant investigations often produce a pile of raw API responses,
+normalized tables, reports, screenshots, and notes. Without a source registry,
+future agents or humans can accidentally:
+
+- cite stale reports instead of current normalized evidence
+- upload raw/private data when a smaller safe pack was enough
+- treat generated reports as live truth
+- miss partial collection warnings
+- lose track of which bundle is canonical
+
+This toolkit makes those boundaries explicit.
+
+## Install
+
+```bash
+python3 -m pip install -e ".[dev]"
+```
+
+## Quick Demo
+
+Build a source registry from the included fake bundle:
+
+```bash
+ha-audit-toolkit build-registry \
+  --root sample_data \
+  --bundle example_bundle \
+  --output sample_data/current_manifest.json
+```
+
+Create an upload-safe export:
+
+```bash
+ha-audit-toolkit export-safe \
+  --root sample_data \
+  --manifest sample_data/current_manifest.json \
+  --output exports/example_current
+```
+
+Validate the bundle and export:
+
+```bash
+ha-audit-toolkit validate \
+  --root sample_data \
+  --manifest sample_data/current_manifest.json \
+  --export-dir exports/example_current
+```
+
+## CLI Commands
+
+```text
+ha-audit-toolkit build-registry
+ha-audit-toolkit export-safe
+ha-audit-toolkit validate
+ha-audit-toolkit scan-secrets
+```
+
+## Bundle Layout
+
+The expected bundle shape is:
+
+```text
+ha_audit_YYYYMMDD_HHMMSS/
+  index/
+    manifest.json
+    progress.json
+  normalized/
+    system_snapshot.json
+    entities.json
+    devices.json
+    automations.json
+    scripts.json
+    recommendations.json
+  reports/
+    00_executive_summary.md
+    01_system_overview.md
+    09_recommendations.md
+```
+
+The toolkit is intentionally tolerant: it reports missing files clearly instead
+of pretending every collector produces the same sections.
+
+## Privacy Model
+
+Raw Home Assistant exports can contain names, rooms, entities, device metadata,
+state history, URLs, and tokens in logs. This project treats:
+
+- `raw/` as high sensitivity and not export-safe
+- `normalized/` as medium sensitivity by default
+- `reports/` and index metadata as lower sensitivity after review
+- the generated safe export as the only folder intended for assistant upload
+
+You should still review exports before uploading them anywhere.
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [Privacy and export safety](docs/privacy.md)
+- [Workflow guide](docs/workflow.md)
+- [Roadmap](docs/roadmap.md)
+
+## Checks
+
+```bash
+python3 -m pytest
+python3 -m compileall src tests
+```
+
+## Project Status
+
+MVP. The core registry/export/validation workflow is usable, but live collection
+is intentionally out of scope for this public repo.
+

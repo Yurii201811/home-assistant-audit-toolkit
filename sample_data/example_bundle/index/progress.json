@@ -1,0 +1,8 @@
+{
+  "bundle_dir": "example_bundle",
+  "generated_at": "2026-01-01T00:00:00+00:00",
+  "completeness_verdict": "safe_to_publish",
+  "baseline_bundle": null,
+  "partial_sections": ["statistics"]
+}
+

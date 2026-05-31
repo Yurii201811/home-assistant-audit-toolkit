@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-01-01T00:00:00+00:00",
+  "section": "recommendations",
+  "record_count": 2,
+  "records": [
+    {"priority": "medium", "title": "Review unavailable entities", "safe_to_share": true},
+    {"priority": "low", "title": "Add automation descriptions", "safe_to_share": true}
+  ]
+}
+

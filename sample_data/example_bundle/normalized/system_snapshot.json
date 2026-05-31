@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-01-01T00:00:00+00:00",
+  "section": "system_snapshot",
+  "record_count": 1,
+  "records": [
+    {
+      "home_assistant_version": "2026.1.0",
+      "entity_count": 6,
+      "device_count": 3,
+      "automation_count": 2,
+      "script_count": 1
+    }
+  ]
+}
+

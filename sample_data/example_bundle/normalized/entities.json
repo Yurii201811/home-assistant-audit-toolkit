@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-01-01T00:00:00+00:00",
+  "section": "entities",
+  "record_count": 3,
+  "records": [
+    {"entity_id": "light.kitchen_ceiling", "domain": "light", "area_id": "kitchen", "state": "off"},
+    {"entity_id": "sensor.living_room_temperature", "domain": "sensor", "area_id": "living_room", "state": "21.4"},
+    {"entity_id": "automation.kitchen_motion_light", "domain": "automation", "area_id": "kitchen", "state": "on"}
+  ]
+}
+

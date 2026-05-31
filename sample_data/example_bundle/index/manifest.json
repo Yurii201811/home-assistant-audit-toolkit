@@ -1,0 +1,16 @@
+{
+  "bundle": "example_bundle",
+  "files": [
+    "index/progress.json",
+    "normalized/system_snapshot.json",
+    "normalized/entities.json",
+    "normalized/devices.json",
+    "normalized/automations.json",
+    "normalized/scripts.json",
+    "normalized/recommendations.json",
+    "reports/00_executive_summary.md",
+    "reports/01_system_overview.md",
+    "reports/09_recommendations.md"
+  ]
+}
+
