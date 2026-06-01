@@ -1,5 +1,9 @@
 # Home Assistant Audit Toolkit
 
+[![CI](https://github.com/Yurii201811/home-assistant-audit-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Yurii201811/home-assistant-audit-toolkit/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 Read-only source-bundle tooling for Home Assistant audits, validation, and
 upload-safe AI review packs.
 
@@ -21,6 +25,14 @@ public-safe documentation.
 
 It does not edit Home Assistant, rename entities, change automations, touch
 `.storage`, or call live services.
+
+## Project Signals
+
+- Public-safe sample bundle with fake Home Assistant data.
+- Tested registry, export, validation, and secret-scan workflow.
+- CI checks Python 3.11 and 3.12.
+- Explicit privacy and security docs for assistant-upload boundaries.
+- MIT licensed and designed as a focused CLI, not a private config dump.
 
 ## Why This Exists
 
@@ -123,6 +135,7 @@ You should still review exports before uploading them anywhere.
 - [Privacy and export safety](docs/privacy.md)
 - [Workflow guide](docs/workflow.md)
 - [Roadmap](docs/roadmap.md)
+- [Changelog](CHANGELOG.md)
 
 ## Checks
 
@@ -135,4 +148,3 @@ python3 -m compileall src tests
 
 MVP. The core registry/export/validation workflow is usable, but live collection
 is intentionally out of scope for this public repo.
-

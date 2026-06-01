@@ -25,6 +25,12 @@ classifiers = [
 ]
 dependencies = []
 
+[project.urls]
+Homepage = "https://github.com/Yurii201811/home-assistant-audit-toolkit"
+Repository = "https://github.com/Yurii201811/home-assistant-audit-toolkit"
+Issues = "https://github.com/Yurii201811/home-assistant-audit-toolkit/issues"
+Changelog = "https://github.com/Yurii201811/home-assistant-audit-toolkit/blob/main/CHANGELOG.md"
+
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 
@@ -37,4 +43,3 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-

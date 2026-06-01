@@ -7,7 +7,7 @@ from pathlib import Path
 from .exporter import export_safe_pack
 from .io import read_json, write_json
 from .registry import build_registry
-from .secret_scan import scan_file
+from .secret_scan import scan_path
 from .validator import validate_bundle
 
 
@@ -45,10 +45,7 @@ def command_validate(args: argparse.Namespace) -> int:
 
 
 def command_scan_secrets(args: argparse.Namespace) -> int:
-    paths = [path for path in args.path.rglob("*") if path.is_file()] if args.path.is_dir() else [args.path]
-    findings = []
-    for path in paths:
-        findings.extend(scan_file(path, root=args.path if args.path.is_dir() else args.path.parent))
+    findings = scan_path(args.path)
     for finding in findings:
         print(f"{finding.path}:{finding.line}")
     return 1 if findings else 0
@@ -97,4 +94,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -2,8 +2,21 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import Iterable
 from pathlib import Path
 
+
+DEFAULT_SKIP_DIRS = {
+    ".git",
+    ".venv",
+    "__pycache__",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".mypy_cache",
+    "dist",
+    "build",
+    "exports",
+}
 
 SECRET_PATTERNS = [
     re.compile(r"Bearer\s+[A-Za-z0-9._~+/=-]{20,}"),
@@ -24,6 +37,8 @@ class SecretFinding:
 def scan_text(text: str, path_label: str = "<memory>") -> list[SecretFinding]:
     findings: list[SecretFinding] = []
     for line_number, line in enumerate(text.splitlines(), start=1):
+        if "allow-secret-fixture" in line:
+            continue
         for pattern in SECRET_PATTERNS:
             if pattern.search(line):
                 findings.append(SecretFinding(path_label, line_number, pattern.pattern))
@@ -36,3 +51,21 @@ def scan_file(path: Path, *, root: Path | None = None) -> list[SecretFinding]:
     text = path.read_text(encoding="utf-8", errors="ignore")
     return scan_text(text, label)
 
+
+def iter_scan_files(target: Path) -> Iterable[Path]:
+    if target.is_file():
+        yield target
+        return
+    for path in target.rglob("*"):
+        if any(part in DEFAULT_SKIP_DIRS for part in path.parts):
+            continue
+        if path.is_file():
+            yield path
+
+
+def scan_path(target: Path) -> list[SecretFinding]:
+    root = target if target.is_dir() else target.parent
+    findings: list[SecretFinding] = []
+    for path in iter_scan_files(target):
+        findings.extend(scan_file(path, root=root))
+    return findings
