@@ -4,6 +4,11 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Upgraded safe-export manifests to schema version 2 with SHA-256 integrity
+  metadata and fail-closed validation for missing, modified, symlinked, nested,
+  or unexpected entries.
+- Blocked symlinked output roots and `--no-clean` destination aliases before
+  writes, including case and Unicode equivalents on APFS-style filesystems.
 - Made safe exports fail closed before destination changes: canonical-bundle
   containment, symlink escapes, raw evidence, secret patterns, missing sources,
   and source/output overlap are checked before cleaning or copying.

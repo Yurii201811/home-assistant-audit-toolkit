@@ -30,6 +30,12 @@ Use `export-safe --dry-run` to run the same preflight and inspect the flat copy
 plan without writing files. A passing scan is a guardrail, not proof that the
 content is appropriate to share.
 
+After export, `validate --export-dir` verifies SHA-256 digests for every copied
+file and the generated README. It also refuses missing files, symlinks, nested
+directories, and unexpected entries so accidental drift cannot silently pass as
+the generated safe pack. The manifest is not signed, so this is an integrity
+check rather than proof of authenticity.
+
 ## Secret Patterns
 
 Export preflight and validation scan for obvious token forms:

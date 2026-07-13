@@ -19,6 +19,8 @@ public-safe documentation.
 - Marks files by source type, privacy level, record count, and upload safety.
 - Validates bundle structure, JSON/CSV record counts, export manifests, and
   obvious secret patterns.
+- Detects missing, modified, symlinked, or structurally unexpected files in a
+  completed safe export.
 - Preflights canonical-bundle paths, raw-file exclusion, obvious secret
   patterns, and output location before creating an export.
 - Creates a flat upload-safe export pack from normalized files and reports.
@@ -107,6 +109,11 @@ ha-audit-toolkit validate \
   --manifest sample_data/current_manifest.json \
   --export-dir exports/example_current
 ```
+
+Completed exports record SHA-256 hashes for every copied file and the generated
+README. Validation fails closed if those files are missing, modified, replaced
+by symlinks, or joined by nested directories. These hashes detect accidental
+drift; they are not signatures and do not prove who created the pack.
 
 ## CLI Commands
 

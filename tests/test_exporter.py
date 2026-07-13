@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import unicodedata
 from pathlib import Path
 
@@ -39,7 +40,43 @@ def test_export_safe_pack_excludes_raw(tmp_path: Path) -> None:
     assert "system_snapshot.json" in export_manifest["copied_files"]
     assert "states.json" not in export_manifest["copied_files"]
     assert not (root / "export" / "states.json").exists()
+    assert export_manifest["schema_version"] == 2
+    assert set(export_manifest["file_sha256"]) == {*export_manifest["copied_files"], "README.md"}
+    assert all(len(digest) == 64 for digest in export_manifest["file_sha256"].values())
     assert "configured_secret_patterns_absent" in export_manifest["preflight_checks"]
+
+
+def test_no_clean_rejects_destination_symlink_before_writing(tmp_path: Path) -> None:
+    root = tmp_path / "workspace"
+    bundle = create_bundle(root)
+    manifest = build_registry(root, bundle.name)
+    output = root / "export"
+    output.mkdir()
+    outside = tmp_path / "outside.txt"
+    outside.write_text("do not overwrite", encoding="utf-8")
+    os.symlink(outside, output / "system_snapshot.json")
+
+    with pytest.raises(UnsafeExportError, match="destination cannot be a symlink"):
+        export_safe_pack(root, manifest, output, clean=False)
+
+    assert outside.read_text(encoding="utf-8") == "do not overwrite"
+    assert not (output / "README.md").exists()
+    assert not (output / "safe_export_manifest.json").exists()
+
+
+def test_export_rejects_symlinked_output_root(tmp_path: Path) -> None:
+    root = tmp_path / "workspace"
+    bundle = create_bundle(root)
+    manifest = build_registry(root, bundle.name)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    output = root / "export"
+    os.symlink(outside, output)
+
+    with pytest.raises(UnsafeExportError, match="output cannot be a symlink"):
+        export_safe_pack(root, manifest, output)
+
+    assert list(outside.iterdir()) == []
 
 
 def test_secret_preflight_preserves_existing_output(tmp_path: Path) -> None:

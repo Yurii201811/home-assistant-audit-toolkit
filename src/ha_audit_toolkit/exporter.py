@@ -7,20 +7,20 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from .io import write_json
+from .io import sha256_file, write_json
 from .secret_scan import scan_file
 
 
 RESERVED_EXPORT_NAMES = {"README.md", "safe_export_manifest.json"}
 
 
-def _export_name_key(name: str) -> str:
+def export_name_key(name: str) -> str:
     """Return a filesystem-conservative key for a flat export filename."""
 
     return unicodedata.normalize("NFC", name.casefold())
 
 
-RESERVED_EXPORT_NAME_KEYS = frozenset(_export_name_key(name) for name in RESERVED_EXPORT_NAMES)
+RESERVED_EXPORT_NAME_KEYS = frozenset(export_name_key(name) for name in RESERVED_EXPORT_NAMES)
 
 
 class UnsafeExportError(ValueError):
@@ -89,6 +89,8 @@ def _is_same_or_within(path: Path, directory: Path) -> bool:
 
 
 def _safe_output_path(root: Path, bundle: Path, output: Path) -> Path:
+    if output.is_symlink():
+        raise UnsafeExportError(f"Export output cannot be a symlink: {output}")
     output = output.resolve()
     if output.exists() and not output.is_dir():
         raise UnsafeExportError(f"Export output exists and is not a directory: {output}")
@@ -102,20 +104,52 @@ def _safe_output_path(root: Path, bundle: Path, output: Path) -> Path:
 def _unique_export_name(bundle_relative_path: str, used_name_keys: set[str]) -> str:
     source_name = PurePosixPath(bundle_relative_path).name
     export_name = source_name
-    if _export_name_key(export_name) in RESERVED_EXPORT_NAME_KEYS or _export_name_key(export_name) in used_name_keys:
+    if export_name_key(export_name) in RESERVED_EXPORT_NAME_KEYS or export_name_key(export_name) in used_name_keys:
         export_name = bundle_relative_path.replace("/", "__")
-    if _export_name_key(export_name) in RESERVED_EXPORT_NAME_KEYS:
+    if export_name_key(export_name) in RESERVED_EXPORT_NAME_KEYS:
         export_name = f"source__{export_name}"
     base_name = export_name
     suffix = 2
     while (
-        _export_name_key(export_name) in used_name_keys
-        or _export_name_key(export_name) in RESERVED_EXPORT_NAME_KEYS
+        export_name_key(export_name) in used_name_keys
+        or export_name_key(export_name) in RESERVED_EXPORT_NAME_KEYS
     ):
         export_name = f"{base_name}__{suffix}"
         suffix += 1
-    used_name_keys.add(_export_name_key(export_name))
+    used_name_keys.add(export_name_key(export_name))
     return export_name
+
+
+def _preflight_preserved_output(plan: ExportPlan) -> None:
+    if not plan.output.exists():
+        return
+
+    existing_by_key: dict[str, Path] = {}
+    for child in plan.output.iterdir():
+        key = export_name_key(child.name)
+        previous = existing_by_key.get(key)
+        if previous is not None and previous.name != child.name:
+            raise UnsafeExportError(
+                "Existing export entries collide by case or Unicode normalization: "
+                f"{previous.name!r} and {child.name!r}"
+            )
+        existing_by_key[key] = child
+
+    destination_names = [
+        *(planned_file.export_name for planned_file in plan.files),
+        *sorted(RESERVED_EXPORT_NAMES),
+    ]
+    for name in destination_names:
+        destination = plan.output / name
+        existing = existing_by_key.get(export_name_key(name))
+        if existing is not None and existing.name != name:
+            raise UnsafeExportError(
+                f"Existing export entry aliases destination {name!r}: {existing.name!r}"
+            )
+        if destination.is_symlink():
+            raise UnsafeExportError(f"Export destination cannot be a symlink: {name}")
+        if destination.exists() and not destination.is_file():
+            raise UnsafeExportError(f"Export destination exists and is not a regular file: {name}")
 
 
 def plan_safe_pack(root: Path, manifest: dict[str, Any], output: Path) -> ExportPlan:
@@ -202,6 +236,7 @@ def export_safe_pack(root: Path, manifest: dict[str, Any], output: Path, *, clea
     if clean:
         clean_output(output)
     else:
+        _preflight_preserved_output(plan)
         output.mkdir(parents=True, exist_ok=True)
 
     copied: list[str] = []
@@ -210,7 +245,7 @@ def export_safe_pack(root: Path, manifest: dict[str, Any], output: Path, *, clea
         copied.append(planned_file.export_name)
 
     export_manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "exported_at": utc_now(),
         "source_bundle": plan.source_bundle,
         "copied_files": copied,
@@ -223,8 +258,12 @@ def export_safe_pack(root: Path, manifest: dict[str, Any], output: Path, *, clea
         ],
         "privacy_note": "Review files before upload. Raw files are excluded by default.",
     }
-    write_json(output / "safe_export_manifest.json", export_manifest)
     (output / "README.md").write_text(build_readme(export_manifest), encoding="utf-8")
+    export_manifest["file_sha256"] = {
+        name: sha256_file(output / name)
+        for name in [*copied, "README.md"]
+    }
+    write_json(output / "safe_export_manifest.json", export_manifest)
     return export_manifest
 
 

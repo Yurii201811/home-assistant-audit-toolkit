@@ -53,4 +53,12 @@ ha-audit-toolkit validate \
 
 Validation fails if required files are missing, counts disagree, the export
 points at the wrong bundle, raw files appear in the export, or possible secrets
-are found in upload-safe files.
+are found in upload-safe files. It also verifies the SHA-256 digest of every
+copied file and the generated README, and rejects missing files, symlinks,
+nested directories, and other unexpected entries. The digests detect accidental
+changes; they are not cryptographic signatures of the pack's author. Regenerate
+older schema-version-1 exports before validating them with this version.
+
+With `--no-clean`, export preflight preserves unrelated regular files but refuses
+symlinked, non-regular, case-aliased, or Unicode-aliased destination collisions
+before copying anything. The export directory itself must not be a symlink.
