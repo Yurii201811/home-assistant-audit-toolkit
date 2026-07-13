@@ -19,6 +19,8 @@ public-safe documentation.
 - Marks files by source type, privacy level, record count, and upload safety.
 - Validates bundle structure, JSON/CSV record counts, export manifests, and
   obvious secret patterns.
+- Preflights canonical-bundle paths, raw-file exclusion, obvious secret
+  patterns, and output location before creating an export.
 - Creates a flat upload-safe export pack from normalized files and reports.
 - Refuses raw evidence files in safe exports by default.
 - Runs entirely read-only against bundle files.
@@ -65,7 +67,25 @@ ha-audit-toolkit build-registry \
   --output sample_data/current_manifest.json
 ```
 
-Create an upload-safe export:
+Validate the source bundle:
+
+```bash
+ha-audit-toolkit validate \
+  --root sample_data \
+  --manifest sample_data/current_manifest.json
+```
+
+Preview the exact safe-export copy plan without writing anything:
+
+```bash
+ha-audit-toolkit export-safe \
+  --root sample_data \
+  --manifest sample_data/current_manifest.json \
+  --output exports/example_current \
+  --dry-run
+```
+
+Create the upload-safe export:
 
 ```bash
 ha-audit-toolkit export-safe \
@@ -74,7 +94,12 @@ ha-audit-toolkit export-safe \
   --output exports/example_current
 ```
 
-Validate the bundle and export:
+`export-safe` fails before creating, cleaning, or copying into the destination
+if an upload-safe entry escapes the canonical bundle, resolves through a
+symlink outside it, points at raw evidence, or matches a configured secret
+pattern.
+
+Validate the completed export:
 
 ```bash
 ha-audit-toolkit validate \
