@@ -19,7 +19,7 @@ Home Assistant directly.
 - `registry.py`: creates a source registry from a bundle.
 - `exporter.py`: copies only upload-safe files into a flat export directory.
 - `validator.py`: checks required files, JSON/CSV record counts, export
-  consistency, and possible secrets.
+  structure and SHA-256 integrity, and possible secrets.
 - `secret_scan.py`: shared secret-pattern scanning.
 - `cli.py`: command-line entrypoint.
 
@@ -30,4 +30,3 @@ Home Assistant directly.
 - `reports/`: human-readable summaries; useful for orientation.
 - `index/`: generated bundle metadata.
 - safe export: current-only assistant upload surface.
-

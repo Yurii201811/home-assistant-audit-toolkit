@@ -4,7 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .exporter import export_safe_pack
+from .exporter import export_safe_pack, plan_safe_pack
 from .io import read_json, write_json
 from .registry import build_registry
 from .secret_scan import scan_path
@@ -20,6 +20,14 @@ def command_build_registry(args: argparse.Namespace) -> int:
 
 def command_export_safe(args: argparse.Namespace) -> int:
     manifest = read_json(args.manifest)
+    if args.dry_run:
+        plan = plan_safe_pack(args.root, manifest, args.output)
+        print("PASS safe export preflight")
+        print(f"would copy {len(plan.files)} file(s) to {plan.output}")
+        for planned_file in plan.files:
+            print(f"- {planned_file.bundle_relative_path} -> {planned_file.export_name}")
+        print("No files were written.")
+        return 0
     export_manifest = export_safe_pack(args.root, manifest, args.output, clean=not args.no_clean)
     print(args.output)
     print(f"copied {len(export_manifest['copied_files'])} file(s)")
@@ -65,7 +73,12 @@ def build_parser() -> argparse.ArgumentParser:
     export.add_argument("--root", type=Path, required=True)
     export.add_argument("--manifest", type=Path, required=True)
     export.add_argument("--output", type=Path, required=True)
-    export.add_argument("--no-clean", action="store_true")
+    export.add_argument("--no-clean", action="store_true", help="Keep unrelated files already in the output directory.")
+    export.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Run the full safety preflight and show the copy plan without writing files.",
+    )
     export.set_defaults(func=command_export_safe)
 
     validate = sub.add_parser("validate", help="Validate bundle and optional safe export.")

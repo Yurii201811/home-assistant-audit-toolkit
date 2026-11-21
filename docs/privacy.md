@@ -14,9 +14,31 @@ The toolkit uses conservative privacy defaults:
 - reports and index files are lower sensitivity, but still require review.
 - generated exports include only files marked `safe_to_upload`.
 
+## Fail-Closed Export Preflight
+
+Before the output directory is created or cleaned, `export-safe` checks every
+candidate file. It refuses the export when:
+
+- the canonical bundle or a candidate path escapes the audit root
+- a symlink resolves outside the canonical bundle
+- raw evidence is marked upload-safe
+- an upload-safe source is missing or is not a regular file
+- a configured secret pattern matches an upload-safe source
+- the output overlaps the audit root or canonical source bundle
+
+Use `export-safe --dry-run` to run the same preflight and inspect the flat copy
+plan without writing files. A passing scan is a guardrail, not proof that the
+content is appropriate to share.
+
+After export, `validate --export-dir` verifies SHA-256 digests for every copied
+file and the generated README. It also refuses missing files, symlinks, nested
+directories, and unexpected entries so accidental drift cannot silently pass as
+the generated safe pack. The manifest is not signed, so this is an integrity
+check rather than proof of authenticity.
+
 ## Secret Patterns
 
-Validation scans for obvious token forms:
+Export preflight and validation scan for obvious token forms:
 
 - bearer tokens
 - access/refresh token URL parameters
@@ -34,4 +56,3 @@ This scan is a guardrail, not a proof of safety. Manual review still matters.
 4. Export the safe pack.
 5. Validate the export.
 6. Review the safe pack before sharing.
-
