@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## Unreleased
+## 0.2.0 - 2026-11-21
 
 - Upgraded safe-export manifests to schema version 2 with SHA-256 integrity
   metadata and fail-closed validation for missing, modified, symlinked, nested,
